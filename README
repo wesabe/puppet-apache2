@@ -1,0 +1,112 @@
+# Apache2 Recipe #
+apache2 -- v0.4 by Sam Quigley <sq@wesabe.com>
+
+Basic module for configuring apache via puppet.  Debian/Ubuntu-specific at
+the moment, but patches are welcome.
+
+Based in part on code by Tim Stoop <tim.stoop@gmail.com> and 
+David Schmitt <david@schmitt.edv-bus.at>
+
+## Configuration ##
+
+This module installs apache2 from packages and promptly overwrites the default
+configuration with one that does nothing other than include various 
+directories:
+
+* /etc/apache2/mods-enabled/
+* /etc/apache2/conf.d
+* /etc/apache2/sites-enabled/
+
+Defines are provided to allow recipes and child classes to interact with these
+directories -- see below.
+
+An additional class, `apache2_debian`, is provided which attempts to mimic
+the default configuration of a freshly-installed debian apache2 package.
+
+A single global configuration variable is available, `$apache2_mpm`, which
+controls which of the mpm packages are installed.  Its possible values are:
+
+* 'event':  Use the event driven model (experimental)
+* 'prefork':  Traditional 
+* 'worker': High speed threaded model
+
+'worker' is the default.
+
+See the apache2::debian and apache2::basic subclasses for examples of how to 
+use and configure this class.  Note that these do *NOT* install site 
+definitions -- so simply including them in a node definition won't work...
+
+### `apache2::config` ###
+
+`apache2::config` installs a configuration snippet in conf.d.  Takes the following options:
+
+* `name`: the name of the config snipppet  [namevar]
+* `ensure`: typically set to "present" or "absent", but any value legal 
+for a file resource can be used.  Defaults to "present"
+* `content`: set this to the text of the snippet -- eg, through 
+template().  Defaults to `template("apache2/$name.conf.erb")`, which is
+unlikely to be what you want.
+* `order`: specifies the load order for this config snippet.  the snippet 
+will end up in `/etc/apache2/conf.d/$order-$name.conf`, and apache will load 
+files in alphanumeric order.  Defaults to "500"
+* `require`: if set, this will require that a package of the given name exists
+before evaluating the rest of the config definition.  It does not currently
+remove the package, even if ensure is set to absent.
+
+### `apache2::module` ###
+
+`apache2::module` enables an apache module.  It does *NOT* currently install
+one for you, except through the "require" argument -- see below.  
+Options are:
+
+* `name`: name of the module.  A file with the name 
+`mods-available/$name.load` is expected to exist in the apache2 directory
+* `ensure`: can be "present" or "absent"
+* `require`: if set, this will require that a package of the given name exists
+before evaluating the rest of the module definition.  It does not currently
+remove the package, even if ensure is set to absent.
+
+### `apache2::site` ###
+
+`apache2::site` enables an apache site.  Options are:
+
+* `name`: name of the site.  A file with the name 
+`sites-available/$name` is expected to exist in the apache2 directory
+* `ensure`: can be "present", "installed", or "absent"
+* `require`: if set, this will require that a package of the given name exists
+before evaluating the rest of the site definition.  It does not currently
+remove the package, even if ensure is set to absent.
+* `content`: set this to the text of the site definition -- eg, through 
+template().  If unset, the module will simply ensure that a file named 
+"/etc/apache2/sites-available/$name" exists
+
+## Example ##
+
+See the code for the apache2_debian subclass for an example of how to use
+this module.
+
+## To Do ##
+
+* apache2::{module,config,site} should really be native types.
+* The configuration of apache2::basic is essentially arbitrary, based on 
+what I needed to override at the moment. Some logic would probably be 
+helpful.
+
+## Changes ##
+
+* stop explicitly importing stuff from manifests/classes; rely on autoload instead
+* add `site_include` definition, similar to `site`
+* add content property to site definition, similar to config
+* allow ensure=>installed for sites -- required moving site installation code 
+to a new definition.
+* added apache2::debian and apache2::basic subclasses
+* added `config` definition, similar to the existing `site` and `module` defs,
+which will include given config snippets
+* Removed port configuration (via /etc/apache2/ports.conf) -- Listen 
+directives make more sense in the individual site definitions, at least for
+SSL, load-balanced, and proxied environments...
+* Removed DavidS' nagios and munin stuff; will probably re-add later.
+* Removed the `no_default_site` subclass and made it the default behavior.  No
+one _really_ wants to serve their distro's default page...
+* Removed the `apache2_ssl business` -- with Listen configured in the site
+defs themselves, it's not really necessary
