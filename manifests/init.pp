@@ -118,19 +118,45 @@ class apache2 {
   # Define an apache2 config snippet. Places all config snippets into
   # /etc/apache2/conf.d, where they will be automatically loaded
 	define config ( $ensure = 'present', $content = '', $order="500") {
-	  $real_content = $content ? { '' => template("apache2/${name}.conf.erb"), 
-	    default => $content,
-	  }
-	  
-	  file { "${apache_conf}/${order}-${name}.conf":
-      ensure => $ensure,
-      content => $content,
-      mode => 644,
-  	  owner => root,
-  	  group => root,
-		# given the way File[$apache_conf] is defined, this might lead to 
-		# multiple restarts.  not sure.
-			notify => Exec["reload-apache2"], 
+    case $content {
+      '': {
+        file { "${apache_conf}/${order}-${name}.conf":
+          ensure => $ensure,
+          content => template("apache2/${name}.conf.erb"),
+          mode => 644,
+          owner => root,
+          group => root,
+        # given the way File[$apache_conf] is defined, this might lead to 
+        # multiple restarts.  not sure.
+          notify => Exec["reload-apache2"], 
+        }
+      }
+
+      'source_file': {
+        file { "${apache_conf}/${order}-${name}.conf":
+          source => [ "puppet:///files/apache2/${fqdn}/${name}.conf", "puppet:///files/apache2/${name}.conf" ],
+          ensure => $ensure,
+          mode => 644,
+          owner => root,
+          group => root,
+        # given the way File[$apache_conf] is defined, this might lead to 
+        # multiple restarts.  not sure.
+          notify => Exec["reload-apache2"], 
+        }
+      }
+
+      default: {
+        file { "${apache_conf}/${order}-${name}.conf":
+          ensure => $ensure,
+          content => template("apache2/${name}.conf.erb"),
+          mode => 644,
+          owner => root,
+          group => root,
+        # given the way File[$apache_conf] is defined, this might lead to 
+        # multiple restarts.  not sure.
+          notify => Exec["reload-apache2"], 
+        }
+      }
     }
 	}
   

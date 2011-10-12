@@ -44,7 +44,9 @@ definitions -- so simply including them in a node definition won't work...
 * `ensure`: typically set to "present" or "absent", but any value legal 
 for a file resource can be used.  Defaults to "present"
 * `content`: set this to the text of the snippet -- eg, through 
-template().  Defaults to `template("apache2/$name.conf.erb")`, which is
+template(). If set to "source_file", the file's content will be sourced from
+puppet master's puppet:///files/apache2/${fqdn}/${name}.conf or puppet:///files/apache2/${name}.conf,
+whichever is available first. Defaults to `template("apache2/$name.conf.erb")`, which is
 unlikely to be what you want.
 * `order`: specifies the load order for this config snippet.  the snippet 
 will end up in `/etc/apache2/conf.d/$order-$name.conf`, and apache will load 
