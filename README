@@ -77,7 +77,9 @@ remove the package, even if ensure is set to absent.
 before evaluating the rest of the site definition.  It does not currently
 remove the package, even if ensure is set to absent.
 * `content`: set this to the text of the site definition -- eg, through 
-template().  If unset, the module will simply ensure that a file named 
+template().  If set to "source_file", the file's content will be sourced from
+puppet master's puppet:///files/apache2/${fqdn}/${name} or puppet:///files/apache2/${name},
+whichever is available first.  If unset, the module will simply ensure that a file named 
 "/etc/apache2/sites-available/$name" exists
 
 ## Example ##
