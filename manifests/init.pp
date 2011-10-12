@@ -179,6 +179,17 @@ class apache2 {
         }
       }
 
+      'source_file': {
+        file { "${apache_sites}-available/${name}":
+          source => [ "puppet:///files/apache2/${fqdn}/${name}", "puppet:///files/apache2/${name}" ],
+          mode => 644,
+      	  owner => root,
+      	  group => root,
+    	    ensure => present,
+    	    alias => "site-$name",
+        }
+      }
+
       default: {
     	  file { "${apache_sites}-available/${name}":
           content => $content,
