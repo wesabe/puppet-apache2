@@ -8,12 +8,12 @@
 # lifting.  see the other subclasses for friendlier versions.
 
 # note: this code is currently very deb/ubuntu-specific
-$apache_sites = "/etc/apache2/sites"
-$apache_includes = "/etc/apache2/site-includes"
-$apache_mods = "/etc/apache2/mods"
-$apache_conf = "/etc/apache2/conf.d"
 
 class apache2 {
+  $apache_sites = "/etc/apache2/sites"
+  $apache_includes = "/etc/apache2/site-includes"
+  $apache_mods = "/etc/apache2/mods"
+  $apache_conf = "/etc/apache2/conf.d"
   $real_apache2_mpm = $apache2_mpm ? { '' => 'worker', default => $apache2_mpm }
   
   case $real_apache2_mpm {
@@ -86,7 +86,7 @@ class apache2 {
 	  mode => 644,
 	  owner => root,
 	  group => root,
-	  source => "puppet://$servername/apache2/apache2.conf",
+	  source => "puppet://$servername/modules/apache2/apache2.conf",
 	  require => File[$apache_conf],
 	}
 
@@ -124,7 +124,7 @@ class apache2 {
 	  
 	  file { "${apache_conf}/${order}-${name}.conf":
       ensure => $ensure,
-      content => $content,
+      content => $real_content,
       mode => 644,
   	  owner => root,
   	  group => root,
