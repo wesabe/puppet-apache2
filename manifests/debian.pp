@@ -4,8 +4,9 @@
 # this class attempts to mimic the default configuration of the debian
 # apache2 package
 
+include apache2
 class apache2::debian inherits apache2 {
-  apache2::config { "debian.conf":
+  apache2::config { "debian":
     order => "000",
     ensure => present,
   }

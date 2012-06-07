@@ -14,7 +14,7 @@ class apache2::basic inherits apache2 {
   apache2::config { "mpm":
     order => "010",
     ensure => present,
-    content => template("apache2/mpm-$real_apache2_mpm.conf.erb"),
+    content => template("apache2/mpm-${real_apache2_mpm}.conf.erb"),
   }
 
   apache2::config { "mime":
